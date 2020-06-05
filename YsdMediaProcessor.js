@@ -142,22 +142,27 @@ export default class YsdMediaProcessor {
 		this.convolverReverbBox.supplySource(this.masterNode, this.integrateNode);
 		this.schroederReverbBox.supplySource(this.masterNode, this.integrateNode);
 
-		const analyserNode = new AnalyserNode(this.context);
-		const recorderDestination = this.context.createMediaStreamDestination();
-		const mediaRecorder = new MediaRecorder(recorderDestination.stream);
-		mediaRecorder.ondataavailable = (e) => {
-			if (this.onRecordingFinishedCallback) {
-				this.onRecordingFinishedCallback(URL.createObjectURL(e.data));
-			}
-		}
-
+		const analyserNode = this.context.createAnalyser();
 		this.source.connect(this.masterNode).connect(this.integrateNode).connect(analyserNode);
-		analyserNode.connect(recorderDestination);
 		analyserNode.connect(this.context.destination);
+
+		let mediaRecorder = null;
+		if (window.MediaRecorder) {
+			const recorderDestination = this.context.createMediaStreamDestination();
+			mediaRecorder = new MediaRecorder(recorderDestination.stream);
+			mediaRecorder.ondataavailable = (e) => {
+				if (this.onRecordingFinishedCallback) {
+					this.onRecordingFinishedCallback(URL.createObjectURL(e.data));
+				}
+			}
+			analyserNode.connect(recorderDestination);
+		}
 
 		// this.source.loop = true;
 		this.source.start();
-		mediaRecorder.start();
+		if (mediaRecorder) {
+			mediaRecorder.start();
+		}
 
 		this.playTimerId = setInterval(() => {
 			this.playTime++;
@@ -191,7 +196,9 @@ export default class YsdMediaProcessor {
 		}, 30);
 
 		this.source.onended = () => {
-			mediaRecorder.stop();
+			if (mediaRecorder) {
+				mediaRecorder.stop();
+			}
 			clearInterval(this.playTimerId);
 			clearInterval(this.waveDrawingTimerId);
 			this.playTime = 0;
