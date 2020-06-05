@@ -2,7 +2,7 @@ import EffectBox from './_EffectBox.js';
 
 export default class DelayBox extends EffectBox {
 
-	constructor(context, integrateNode) {
+	constructor(context) {
 		super(context);
 		
 		this.delayNode = null;

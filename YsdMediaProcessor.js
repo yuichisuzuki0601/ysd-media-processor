@@ -196,6 +196,9 @@ export default class YsdMediaProcessor {
 		}, 30);
 
 		this.source.onended = () => {
+			this.delayBox.resetSource(this.masterNode);
+			this.convolverReverbBox.resetSource(this.masterNode);
+			this.schroederReverbBox.resetSource(this.masterNode);
 			if (mediaRecorder) {
 				mediaRecorder.stop();
 			}
