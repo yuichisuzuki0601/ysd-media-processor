@@ -34,12 +34,14 @@ export default /* abstract */ class EffectBox {
 	}
 
 	resetSource(source) {
-		try {
-			if (source) {
-				source.disconnect(this.inputNode);
-			}
-		} catch {
-		}
+		// If you call source.disconnect in Safari, it ignores the argument Node that you want to disconnect and disconnects all, so provisional support.
+
+		// try {
+		// 	if (source) {
+		// 		source.disconnect(this.inputNode);
+		// 	}
+		// } catch {
+		// }
 		this.outputNode.disconnect();
 	}
 
