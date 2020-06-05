@@ -6,7 +6,7 @@ import hall from './impulse-responses/hall.js';
 // @see https://www.voxengo.com/impulses/
 export default class ConvolverReverbBox extends EffectBox {
 
-	constructor(context, integrateNode) {
+	constructor(context) {
 		super(context);
 
 		this.irBuffer = null;
@@ -32,7 +32,7 @@ export default class ConvolverReverbBox extends EffectBox {
 		this._setReverbType(this.reverbType);
 
 		// wiring
-		this.inputNode.connect(this.convolverNode).connect(this.outputNode).connect(integrateNode);
+		this.inputNode.connect(this.convolverNode).connect(this.outputNode);
 	}
 
 	getReverbTypes() {

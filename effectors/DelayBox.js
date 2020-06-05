@@ -17,7 +17,7 @@ export default class DelayBox extends EffectBox {
 		this.feedbackNode.gain.value = 0.5;
 
 		// wiring
-		this.inputNode.connect(this.delayNode).connect(this.outputNode).connect(integrateNode);
+		this.inputNode.connect(this.delayNode).connect(this.outputNode);
 		this.delayNode.connect(this.feedbackNode).connect(this.delayNode);
 	}
 

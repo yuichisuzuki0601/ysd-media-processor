@@ -19,9 +19,10 @@ export default /* abstract */ class EffectBox {
 	}
 
 	// private
-	_connect(source) {
-		if (source) {
+	_connect(source, destination) {
+		if (source && destination) {
 			source.connect(this.inputNode);
+			this.outputNode.connect(destination);
 			// safari対応
 			this.inputNode.gain.value = 1;
 		}
@@ -29,7 +30,7 @@ export default /* abstract */ class EffectBox {
 	}
 
 	// private
-	_disconnect(source) {
+	_disconnect(source, _) {
 		if (source) {
 			// safari対応
 			// source.disconnect(this.inputNode);
@@ -38,14 +39,14 @@ export default /* abstract */ class EffectBox {
 		this.enabled = false;
 	}
 
-	supplySource(source) {
+	supplySource(source, destination) {
 		if (this.isOn()) {
-			this._connect.bind(this)(source);
+			this._connect.bind(this)(source, destination);
 		}
 	}
 
-	toggle(source) {
-		(!this.enabled ? this._connect : this._disconnect).bind(this)(source);
+	toggle(source, destination) {
+		(!this.enabled ? this._connect : this._disconnect).bind(this)(source, destination);
 	}
 
 }

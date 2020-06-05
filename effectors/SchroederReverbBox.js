@@ -3,7 +3,7 @@ import EffectBox from './_EffectBox.js';
 // @see http://www.ari-web.com/service/soft/reverb-2.htm
 export default class SchroederReverbBox extends EffectBox {
 
-	constructor(context, integrateNode) {
+	constructor(context) {
 		super(context);
 
 		// init
@@ -52,8 +52,6 @@ export default class SchroederReverbBox extends EffectBox {
 		middleNode2.connect(apfDelayNodes[1]).connect(this.outputNode);
 		middleNode2.connect(apfFeedforwardNodes[1]).connect(this.outputNode);
 		apfDelayNodes[1].connect(apfFeedbackNodes[1]).connect(middleNode2);
-
-		this.outputNode.connect(integrateNode);
 	}
 
 	getOutputGain() {

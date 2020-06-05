@@ -14,7 +14,7 @@ export default class YsdMediaProcessor {
 		this.context = new AudioContext();
 		this.audioBuffer = null;
 		this.masterNode = null;
-		this.integrateNode = this.context.createGain();
+		this.integrateNode = null;
 
 		this.started = false;
 		this.playTime = 0;
@@ -29,9 +29,9 @@ export default class YsdMediaProcessor {
 		this.onRecordingFinishedCallback = () => { return; };
 
 		this.volumeBox = new VolumeBox(this.context, () => this.started);
-		this.delayBox = new DelayBox(this.context, this.integrateNode);
-		this.convolverReverbBox = new ConvolverReverbBox(this.context, this.integrateNode);
-		this.schroederReverbBox = new SchroederReverbBox(this.context, this.integrateNode);
+		this.delayBox = new DelayBox(this.context);
+		this.convolverReverbBox = new ConvolverReverbBox(this.context);
+		this.schroederReverbBox = new SchroederReverbBox(this.context);
 	}
 
 	setArrayBuffer(arrayBuffer) {
@@ -80,15 +80,15 @@ export default class YsdMediaProcessor {
 	}
 
 	toggleDelay() {
-		this.delayBox.toggle(this.masterNode);
+		this.delayBox.toggle(this.masterNode, this.integrateNode);
 	}
 
 	toggleConvolverReverb() {
-		this.convolverReverbBox.toggle(this.masterNode);
+		this.convolverReverbBox.toggle(this.masterNode, this.integrateNode);
 	}
 
 	toggleSchroederReverb() {
-		this.schroederReverbBox.toggle(this.masterNode);
+		this.schroederReverbBox.toggle(this.masterNode, this.integrateNode);
 	}
 
 	setOnPlayTimeIncrementedCallback(callback) {
@@ -131,15 +131,16 @@ export default class YsdMediaProcessor {
 		this.source.buffer = this.audioBuffer;
 
 		this.masterNode = this.context.createGain();
-		this.masterNode.gain.cancelScheduledValues(this.context.currentTime);
+		this.integrateNode = this.context.createGain();
 
+		this.masterNode.gain.cancelScheduledValues(this.context.currentTime);
 		this.volumeBox.scheduleFadeIn(this.masterNode);
 		this.volumeBox.scheduleFadeOut(this.masterNode);
 		this.volumeBox.scheduleCut(this.masterNode);
 
-		this.delayBox.supplySource(this.masterNode);
-		this.convolverReverbBox.supplySource(this.masterNode);
-		this.schroederReverbBox.supplySource(this.masterNode);
+		this.delayBox.supplySource(this.masterNode, this.integrateNode);
+		this.convolverReverbBox.supplySource(this.masterNode, this.integrateNode);
+		this.schroederReverbBox.supplySource(this.masterNode, this.integrateNode);
 
 		const analyserNode = new AnalyserNode(this.context);
 		const recorderDestination = this.context.createMediaStreamDestination();
