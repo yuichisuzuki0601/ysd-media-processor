@@ -1,0 +1,5 @@
+License Copyright: Ys.development.
+License License: Ys.development.
+License Contact: ys.development0601@gmail.com.
+
+SPDX short identifier: MIT
