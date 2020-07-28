@@ -21,6 +21,7 @@ export default class ConvolverReverbBox extends EffectBox {
 				ia[i] = byteString.charCodeAt(i);
 			}
 			this.context.decodeAudioData(ab, (irBuffer) => this.convolverNode.buffer = irBuffer);
+			this.reverbType = type;
 		};
 
 		// init
@@ -28,8 +29,7 @@ export default class ConvolverReverbBox extends EffectBox {
 		this.convolverNode = context.createConvolver();
 
 		// setting
-		this.reverbType = 'room';
-		this._setReverbType(this.reverbType);
+		this._setReverbType('room');
 
 		// wiring
 		this.inputNode.connect(this.convolverNode).connect(this.outputNode);
@@ -43,11 +43,11 @@ export default class ConvolverReverbBox extends EffectBox {
 		return this.reverbType;
 	}
 
-	setReverbType(type) {
+	async setReverbType(type) {
 		if (!this.getReverbTypes().includes(type)) {
 			throw 'No shch types.';
 		}
-		this._setReverbType(type);
+		await this._setReverbType(type);
 	}
 
 	getOutputGain() {

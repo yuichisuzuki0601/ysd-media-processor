@@ -34,14 +34,12 @@ export default class VolumeBox {
 			source.gain.linearRampToValueAtTime(0, this.context.currentTime);
 			source.gain.linearRampToValueAtTime(1, this.context.currentTime + this.fadeInDuration);
 		}
-	};
+	}
 
 	scheduleFadeOut(source) {
 		if (this.fadeOutEnabled) {
-			setTimeout(() => {
-				source.gain.setValueAtTime(1, this.context.currentTime);
-				source.gain.linearRampToValueAtTime(0, this.context.currentTime + this.fadeOutDuration);
-			}, this.fadeOutStartTime * 1000);
+			source.gain.setValueAtTime(1, this.context.currentTime + this.fadeOutStartTime);
+			source.gain.linearRampToValueAtTime(0, this.context.currentTime + this.fadeOutStartTime + this.fadeOutDuration);
 		}
 	}
 
@@ -50,83 +48,82 @@ export default class VolumeBox {
 			source.gain.setValueAtTime(0, this.context.currentTime + this.cutStartTime);
 			source.gain.setValueAtTime(1, this.context.currentTime + this.cutEndTime);
 		}
-	};
+	}
 
 	toggleFadeIn() {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.fadeInEnabled = !this.fadeInEnabled;
-	};
+	}
 
 	toggleFadeOut() {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.fadeOutEnabled = !this.fadeOutEnabled;
-	};
+	}
 
 	toggleCut() {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.cutEnabled = !this.cutEnabled;
-	};
+	}
 
 	getFadeInDuration() {
 		return this.fadeInDuration;
-	};
+	}
 
 	setFadeInDuration(sec) {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.fadeInDuration = sec;
-	};
+	}
 
 	getFadeOutStartTime() {
 		return this.fadeOutStartTime;
-	};
+	}
 
 	setFadeOutStartTime(sec) {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.fadeOutStartTime = sec;
-	};
+	}
 
 	getFadeOutDuration() {
 		return this.fadeOutDuration;
-	};
+	}
 
 	setFadeOutDuration(sec) {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.fadeOutDuration = sec;
-	};
+	}
 
 	getCutStartTime() {
 		return this.cutStartTime;
-	};
+	}
 
 	setCutStartTime(sec) {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.cutStartTime = sec;
-	};
+	}
 
 	getCutEndTime() {
 		return this.cutEndTime;
-	};
+	}
 
 	setCutEndTime(sec) {
 		if (this.isStarted()) {
 			throw this.onChangeErrorMessage;
 		}
 		this.cutEndTime = sec;
-	};
+	}
 
-};
-
+}

@@ -3,19 +3,22 @@ import DelayBox from './effectors/DelayBox.js';
 import ConvolverReverbBox from './effectors/ConvolverReverbBox.js';
 import SchroederReverbBox from './effectors/SchroederReverbBox.js';
 
+import BufferToWaveEncoder from './encoders/BufferToWaveEncoder.js';
+
 export default class YsdMediaProcessor {
 
 	constructor() {
 		try {
 			window.AudioContext = window.AudioContext || window.webkitAudioContext;
 		} catch (e) {
-			alert('Web Audio API is not supported in this browser.');
+			throw 'Web Audio API is not supported in this browser.';
 		}
 		this.context = new AudioContext();
 		this.audioBuffer = null;
 		this.masterNode = null;
 		this.integrateNode = null;
 
+		this.originalFileName = 'no-name.';
 		this.started = false;
 		this.playTime = 0;
 		this.playTimerId = null;
@@ -46,7 +49,10 @@ export default class YsdMediaProcessor {
 	setAudioFile(file) {
 		return new Promise((resolve, _) => {
 			var fileReader = new FileReader();
-			fileReader.onload = () => this.setArrayBuffer(fileReader.result).then(resolve);
+			fileReader.onload = () => this.setArrayBuffer(fileReader.result).then(() => {
+				this.originalFileName = file.name;
+				resolve();
+			});
 			fileReader.readAsArrayBuffer(file);
 		});
 	}
@@ -213,6 +219,84 @@ export default class YsdMediaProcessor {
 
 	stop() {
 		this.source.stop();
+	}
+
+	export() {
+		return new Promise((resolve, reject) => {
+			try {
+				window.OfflineAudioContext = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+			} catch (e) {
+				throw 'OfflineAudioContext is not supported in this browser.';
+			}
+
+			const audioBuffer = this.audioBuffer;
+			if (!audioBuffer) {
+				console.error('Audio has not set yet.');
+				reject();
+			}
+
+			const sampleRate = audioBuffer.sampleRate;
+			const context = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.duration * sampleRate, sampleRate);
+			const source = context.createBufferSource();
+			source.buffer = audioBuffer;
+
+			const masterNode = context.createGain();
+			const integrateNode = context.createGain();
+
+			const volumeBox = new VolumeBox(context, () => false);
+			if (this.volumeBox.isOnFadeIn()) {
+				volumeBox.setFadeInDuration(this.volumeBox.getFadeInDuration());
+				volumeBox.toggleFadeIn();
+			}
+			if (this.volumeBox.isOnFadeOut()) {
+				volumeBox.setFadeOutStartTime(this.volumeBox.getFadeOutStartTime());
+				volumeBox.setFadeOutDuration(this.volumeBox.getFadeOutDuration());
+				volumeBox.toggleFadeOut();
+			}
+			if (this.volumeBox.isOnCut()) {
+				volumeBox.setCutStartTime(this.volumeBox.getCutStartTime());
+				volumeBox.setCutEndTime(this.volumeBox.getCutEndTime());
+				volumeBox.toggleCut();
+			}
+			volumeBox.scheduleFadeIn(masterNode);
+			volumeBox.scheduleFadeOut(masterNode);
+			volumeBox.scheduleCut(masterNode);
+
+			if (this.delayBox.isOn()) {
+				const delayBox = new DelayBox(context);
+				delayBox.setDelayTime(this.delayBox.getDelayTime());
+				delayBox.setFeedback(this.delayBox.getFeedback());
+				delayBox.toggle(masterNode, integrateNode);
+			}
+			if (this.convolverReverbBox.isOn()) {
+				const convolverReverbBox = new ConvolverReverbBox(context);
+				convolverReverbBox.setReverbType(this.convolverReverbBox.getReverbType());
+				convolverReverbBox.setOutputGain(this.convolverReverbBox.getOutputGain());
+				convolverReverbBox.toggle(masterNode, integrateNode);
+			}
+			if (this.schroederReverbBox.isOn()) {
+				const schroederReverbBox = new SchroederReverbBox(context);
+				schroederReverbBox.setOutputGain(this.schroederReverbBox.getOutputGain());
+				schroederReverbBox.toggle(masterNode, integrateNode);
+			}
+
+			source.connect(masterNode).connect(integrateNode).connect(context.destination);
+
+			const renderStartTime = new Date().getTime();
+			setTimeout(() => {
+				source.start();
+				context.startRendering();
+				context.oncomplete = (e) => {
+					const renderedBuffer = e.renderedBuffer;
+					const anchor = document.createElement('a');
+					anchor.href = URL.createObjectURL(BufferToWaveEncoder.encode(renderedBuffer));
+					anchor.download = this.originalFileName.slice(0, this.originalFileName.lastIndexOf('.')) + '.mixed.wav';
+					anchor.click();
+					console.log('AudioRenderingTime: ' + (new Date().getTime() - renderStartTime) + '[ms]');
+					resolve();
+				};
+			}, 100);
+		});
 	}
 
 }
